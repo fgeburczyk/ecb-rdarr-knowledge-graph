@@ -23,9 +23,7 @@ The graph contains **43 concepts** and **55 relationships** covering the four co
 
 ## How to View
 
-**Interactive (live):** [fgeburczyk.github.io/ecb-rdarr-knowledge-graph](https://fgeburczyk.github.io/ecb-rdarr-knowledge-graph) — pan, zoom, click any node for its description, and search across all terms.
-
-**In Termboard:** The graph is also provided as a `.json` file for **[Termboard](https://termboard.com)**.
+The graph is provided as a `.json` file for **[Termboard](https://termboard.com)** — a concept mapping and knowledge graph platform.
 
 1. Go to [termboard.com](https://termboard.com)
 2. Import `RDARR Graph.json`
@@ -35,7 +33,6 @@ The graph contains **43 concepts** and **55 relationships** covering the four co
 | File | Description |
 |---|---|
 | `RDARR Graph.json` | Knowledge graph — import into Termboard |
-| `index.html` | Standalone interactive visualizer (served via GitHub Pages) |
 | `screenshot.png` | Static preview |
 
 ## Source
