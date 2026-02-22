@@ -17,11 +17,16 @@ The graph contains **43 concepts** and **55 relationships** covering the four co
 | **Data Quality** | Data quality indicators, KPI monitoring, issue management, end-user computing, ICAAP/ILAAP integration |
 | **Risk Reporting** | Reporting timeliness, frequency calibration, stress-ready capabilities, meaningful internal reporting |
 
+## Preview
+
+![RDARR Knowledge Graph](screenshot.png)
+
 ## How to View
 
-The graph is provided as a `.json` file for **[Termboard](https://termboard.com)** — a concept mapping and knowledge graph platform.
+**Interactive (live):** [fgeburczyk.github.io/ecb-rdarr-knowledge-graph](https://fgeburczyk.github.io/ecb-rdarr-knowledge-graph) — pan, zoom, click any node for its description, and search across all terms.
 
-To open it:
+**In Termboard:** The graph is also provided as a `.json` file for **[Termboard](https://termboard.com)**.
+
 1. Go to [termboard.com](https://termboard.com)
 2. Import `RDARR Graph.json`
 
@@ -30,6 +35,8 @@ To open it:
 | File | Description |
 |---|---|
 | `RDARR Graph.json` | Knowledge graph — import into Termboard |
+| `index.html` | Standalone interactive visualizer (served via GitHub Pages) |
+| `screenshot.png` | Static preview |
 
 ## Source
 

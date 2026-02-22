@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ECB RDARR Knowledge Graph</title>
+  <script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+                   Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      background: #f0f0f0;
+    }
+
+    /* ── Header ── */
+    #header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 20px;
+      height: 52px;
+      flex-shrink: 0;
+      background: #1a1a2e;
+      color: #fff;
+      z-index: 10;
+    }
+
+    #header h1 {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      color: #fff;
+    }
+
+    #search {
+      flex: 1;
+      max-width: 320px;
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: 1px solid #3a3a5c;
+      background: #2a2a4a;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #search::placeholder { color: #888; }
+    #search:focus { border-color: #6e6ebb; }
+
+    #btn-fit {
+      padding: 6px 14px;
+      border-radius: 4px;
+      border: 1px solid #3a3a5c;
+      background: #2a2a4a;
+      color: #ccc;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s, color 0.2s;
+    }
+    #btn-fit:hover { background: #3a3a6a; color: #fff; }
+
+    /* ── Main area ── */
+    #main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    #network-container {
+      flex: 1;
+      background: #ffffff;
+      position: relative;
+    }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      background: #fafafa;
+      border-left: 1px solid #ddd;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #info-panel {
+      padding: 16px;
+      border-bottom: 1px solid #e0e0e0;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    #info-placeholder {
+      color: #aaa;
+      font-size: 13px;
+      font-style: italic;
+      margin-top: 4px;
+    }
+
+    #info-content { display: none; }
+
+    #info-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1a2e;
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+
+    #info-type-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 2px 7px;
+      border-radius: 3px;
+      margin-bottom: 10px;
+      background: #e8e8f0;
+      color: #555;
+    }
+
+    #info-description {
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    #info-description.empty { color: #aaa; font-style: italic; }
+
+    /* ── Legend ── */
+    #legend {
+      padding: 14px 16px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    #legend h2 {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #888;
+      margin-bottom: 10px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      cursor: pointer;
+    }
+
+    .legend-item:last-child { margin-bottom: 0; }
+
+    .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 2px;
+      border: 1px solid rgba(0,0,0,0.15);
+      flex-shrink: 0;
+    }
+
+    .legend-label {
+      font-size: 11.5px;
+      color: #444;
+      line-height: 1.3;
+    }
+
+    /* ── Source ── */
+    #source-line {
+      padding: 10px 16px;
+      font-size: 10.5px;
+      color: #999;
+      border-top: 1px solid #e8e8e8;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="header">
+    <h1>ECB RDARR Knowledge Graph</h1>
+    <input id="search" type="search" placeholder="Search nodes..." autocomplete="off" />
+    <button id="btn-fit">Fit view</button>
+  </div>
+
+  <div id="main">
+    <div id="network-container"></div>
+
+    <div id="sidebar">
+      <div id="info-panel">
+        <div id="info-placeholder">Click a node to explore</div>
+        <div id="info-content">
+          <div id="info-name"></div>
+          <div id="info-type-badge"></div>
+          <div id="info-description"></div>
+        </div>
+      </div>
+
+      <div id="legend">
+        <h2>Categories</h2>
+        <!-- items injected by JS -->
+      </div>
+
+      <div id="source-line">Based on the ECB Guide on RDARR (May 2024)</div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── Color legend ── */
+  const LEGEND = {
+    '#E6194B': 'Regulatory Framework',
+    '#AAFFC3': 'Governance',
+    '#4363D8': 'Data Governance',
+    '#F58231': 'Data Quality',
+    '#FABEBE': 'Risk Reporting',
+    '#FFD8B1': 'Scope & Application',
+    '#FFFF00': 'Data Architecture',
+    '#FFFAC8': 'Implementation',
+    '#808080': 'Reference Concepts',
+  };
+
+  /* Build legend DOM */
+  const legendEl = document.getElementById('legend');
+  Object.entries(LEGEND).forEach(([hex, label]) => {
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.dataset.color = hex.toLowerCase();
+
+    const swatch = document.createElement('div');
+    swatch.className = 'legend-swatch';
+    swatch.style.background = hex;
+
+    const lbl = document.createElement('span');
+    lbl.className = 'legend-label';
+    lbl.textContent = label;
+
+    item.appendChild(swatch);
+    item.appendChild(lbl);
+    legendEl.appendChild(item);
+  });
+
+  /* ── Utility: hex → relative luminance ── */
+  function hexToRgb(hex) {
+    hex = hex.replace(/^#/, '');
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    const n = parseInt(hex, 16);
+    return { r: (n >> 16) & 0xff, g: (n >> 8) & 0xff, b: n & 0xff };
+  }
+
+  function relativeLuminance({ r, g, b }) {
+    const ch = [r, g, b].map(v => {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+  }
+
+  function fontColorForBg(hex) {
+    try {
+      const rgb = hexToRgb(hex);
+      return relativeLuminance(rgb) > 0.35 ? '#1a1a2e' : '#ffffff';
+    } catch {
+      return '#1a1a2e';
+    }
+  }
+
+  /* ── State ── */
+  let network = null;
+  let allNodes = null;   // vis.DataSet
+  let allEdges = null;   // vis.DataSet
+  let rawTerms = [];     // original term objects (for search metadata)
+
+  /* ── Fetch & build ── */
+  fetch('RDARR%20Graph.json')
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(json => {
+      const data = json.data;
+      rawTerms = data.terms;
+
+      /* ── Nodes ── */
+      const nodes = rawTerms.map(t => {
+        const bg = t.style_backgroundColor || '#cccccc';
+        const fColor = fontColorForBg(bg);
+        const isEllipse = t.style_shape === 'ellipse';
+
+        return {
+          id: t.id,
+          label: t.name,
+          x: t.x,
+          y: t.y,
+          shape: isEllipse ? 'ellipse' : 'box',
+          widthConstraint: { maximum: 130 },
+          color: {
+            background: bg,
+            border: '#808080',
+            highlight: { background: bg, border: '#000000' },
+          },
+          font: { color: fColor, size: 11 },
+          fixed: true,
+          /* store extras for search / sidebar */
+          _name: t.name,
+          _description: t.description || '',
+          _type: t.type || '',
+          _bg: bg,
+        };
+      });
+
+      /* ── Edges ── */
+      const edges = data.relations.map(r => {
+        const edgeLabel = r.name && r.name.trim() ? r.name.trim() : undefined;
+        return {
+          id: r.id,
+          from: r.source,
+          to: r.target,
+          label: edgeLabel,
+          arrows: { to: { enabled: true, scaleFactor: 0.6 } },
+          color: { color: r.style_lineColor || '#808080', opacity: 0.7 },
+          font: {
+            size: 9,
+            color: '#666',
+            align: 'middle',
+            strokeWidth: 2,
+            strokeColor: '#fff',
+          },
+          smooth: { enabled: false },
+        };
+      });
+
+      allNodes = new vis.DataSet(nodes);
+      allEdges = new vis.DataSet(edges);
+
+      const container = document.getElementById('network-container');
+
+      network = new vis.Network(
+        container,
+        { nodes: allNodes, edges: allEdges },
+        {
+          physics: false,
+          interaction: { hover: true },
+          nodes: {
+            borderWidth: 1,
+            borderWidthSelected: 2,
+          },
+          edges: {
+            width: 1.2,
+          },
+        }
+      );
+
+      network.fit();
+
+      /* ── Sidebar: node click ── */
+      network.on('click', function (params) {
+        if (params.nodes.length === 0) {
+          showPlaceholder();
+          return;
+        }
+        const nodeId = params.nodes[0];
+        const node = allNodes.get(nodeId);
+        showNodeInfo(node);
+      });
+
+      /* ── Sidebar: background click ── */
+      network.on('deselectNode', function () {
+        showPlaceholder();
+      });
+    })
+    .catch(err => {
+      document.getElementById('network-container').innerHTML =
+        '<p style="padding:24px;color:#c00;font-size:14px;">Failed to load graph data: ' +
+        err.message + '</p>';
+    });
+
+  /* ── Sidebar helpers ── */
+  function showPlaceholder() {
+    document.getElementById('info-placeholder').style.display = '';
+    document.getElementById('info-content').style.display = 'none';
+  }
+
+  function showNodeInfo(node) {
+    document.getElementById('info-placeholder').style.display = 'none';
+    document.getElementById('info-content').style.display = '';
+
+    const nameEl = document.getElementById('info-name');
+    nameEl.textContent = node._name;
+    nameEl.style.color = '#1a1a2e';
+
+    const badgeEl = document.getElementById('info-type-badge');
+    badgeEl.textContent = node._type || 'term';
+    badgeEl.style.background = node._bg + '55';  /* semi-transparent bg tint */
+    badgeEl.style.color = '#444';
+
+    const descEl = document.getElementById('info-description');
+    if (node._description && node._description.trim()) {
+      descEl.textContent = node._description.trim();
+      descEl.classList.remove('empty');
+    } else {
+      descEl.textContent = 'No description available.';
+      descEl.classList.add('empty');
+    }
+  }
+
+  /* ── Search ── */
+  const searchInput = document.getElementById('search');
+
+  searchInput.addEventListener('input', function () {
+    if (!allNodes) return;
+    const q = this.value.trim().toLowerCase();
+
+    if (!q) {
+      /* restore all */
+      const updates = allNodes.map(n => ({
+        id: n.id,
+        opacity: 1,
+        font: { color: fontColorForBg(n._bg), size: 11 },
+      }));
+      allNodes.update(updates);
+      const edgeUpdates = allEdges.map(e => ({ id: e.id, color: { opacity: 0.7 } }));
+      allEdges.update(edgeUpdates);
+      return;
+    }
+
+    const matchIds = new Set();
+    allNodes.forEach(n => {
+      const haystack = (n._name + ' ' + n._description).toLowerCase();
+      if (haystack.includes(q)) matchIds.add(n.id);
+    });
+
+    /* dim non-matching nodes */
+    const nodeUpdates = allNodes.map(n => {
+      if (matchIds.has(n.id)) {
+        return { id: n.id, opacity: 1, font: { color: fontColorForBg(n._bg), size: 11 } };
+      } else {
+        return { id: n.id, opacity: 0.08, font: { color: 'rgba(0,0,0,0.15)', size: 11 } };
+      }
+    });
+    allNodes.update(nodeUpdates);
+
+    /* dim edges where neither endpoint matches */
+    const edgeUpdates = allEdges.map(e => {
+      const vis_ = matchIds.has(e.from) || matchIds.has(e.to);
+      return { id: e.id, color: { opacity: vis_ ? 0.7 : 0.05 } };
+    });
+    allEdges.update(edgeUpdates);
+  });
+
+  /* ── Fit button ── */
+  document.getElementById('btn-fit').addEventListener('click', function () {
+    if (network) network.fit({ animation: { duration: 500, easingFunction: 'easeInOutQuad' } });
+  });
+
+})();
+</script>
+</body>
+</html>
